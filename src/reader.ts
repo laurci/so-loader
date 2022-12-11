@@ -63,4 +63,33 @@ export class Reader {
         return result;
     }
 
+    public readLEB128() {
+        let result = 0;
+        let shift = 0;
+        let byte;
+
+        do {
+            byte = this.readUInt8();
+            result |= (byte & 0x7f) << shift;
+            shift += 7;
+        } while (byte & 0x80);
+
+        if (byte & 0x40) {
+            result |= -(1 << shift);
+        }
+
+        return result;
+    }
+
+    public readString() {
+        let result = "";
+        let byte;
+
+        while ((byte = this.readUInt8()) !== 0) {
+            result += String.fromCharCode(byte);
+        }
+
+        return result;
+    }
+
 }

@@ -254,6 +254,7 @@ export enum AbbreviationAttributeName {
 export interface AbbreviationAttribute {
     name: AbbreviationAttributeName;
     form: AbbreviationAttributeForm;
+    value?: number;
 }
 
 export interface AbbreviationEntry {
@@ -263,7 +264,18 @@ export interface AbbreviationEntry {
     attributes: AbbreviationAttribute[];
 }
 
-export interface CompilationUnitHeader {
+export interface InfoAttribute {
+    abbreviation: AbbreviationAttribute;
+    value: number | string;
+}
+
+export interface InfoEntry {
+    abbreviation: AbbreviationEntry;
+    attributes: InfoAttribute[];
+    children: InfoEntry[];
+}
+
+export interface CompilationUnitHeader extends InfoEntry {
     version: number;
     abbrevOffset: number;
     addressSize: number;
@@ -274,20 +286,19 @@ export interface CompilationUnit {
     abbreviations: AbbreviationEntry[];
 }
 
-function decodeAbbreviations(buffer: Buffer, elf: ElfHeader, offset: number) {
+function decodeAbbreviations(buffer: Buffer, elf: ElfHeader) {
     const debugAbbrevSectionHeader = elf.elfSectionHeaders.find((section) => getSectionName(buffer, elf, section) == '.debug_abbrev');
 
     if (!debugAbbrevSectionHeader) return [];
 
-    const abbrevReader = Reader.from(buffer, debugAbbrevSectionHeader.offset + offset);
+    const abbrevReader = Reader.from(buffer, debugAbbrevSectionHeader.offset);
 
     const debugAbbrev: AbbreviationEntry[] = [];
 
     while (abbrevReader.offset < debugAbbrevSectionHeader.offset + debugAbbrevSectionHeader.size) {
         const code = abbrevReader.readULEB128();
-        if (code == 0) break;
-
         const tag: AbbreviationTag = abbrevReader.readULEB128();
+
         const hasChildren = abbrevReader.readUInt8() == 1 ? true : false;
 
         const attributes: AbbreviationAttribute[] = [];
@@ -297,28 +308,98 @@ function decodeAbbreviations(buffer: Buffer, elf: ElfHeader, offset: number) {
             const name: AbbreviationAttributeName = abbrevReader.readULEB128();
             const form: AbbreviationAttributeForm = abbrevReader.readULEB128();
 
+
+            let value: number | undefined;
+            if (form == AbbreviationAttributeForm.ImplicitConst) {
+                value = abbrevReader.readLEB128();
+            }
+
             if (name == 0 && form == 0) break;
 
-            attributes.push({ name, form });
+            attributes.push({ name, form, value });
         }
+
+        if (code == 0) break;
 
         debugAbbrev.push({ code, tag, hasChildren, attributes });
     }
 
-
-    const debugAbbrevD = debugAbbrev.map(x => ({
-        code: x.code,
-        tag: AbbreviationTag[x.tag],
-        hasChildren: x.hasChildren,
-        attributes: x.attributes.map(y => ({
-            name: AbbreviationAttributeName[y.name],
-            form: AbbreviationAttributeForm[y.form]
-        }))
-    }));
-
-    console.dir(debugAbbrevD, { depth: null });
-
     return debugAbbrev;
+}
+
+class InfoEntryStack {
+    private stack: InfoEntry[] = [];
+
+    empty() {
+        return this.stack.length == 0;
+    }
+
+    push(entry: InfoEntry) {
+        this.stack.push(entry);
+    }
+
+    pop() {
+        return this.stack.pop();
+    }
+
+    get current() {
+        return this.stack[this.stack.length - 1];
+    }
+}
+
+function readAttributeValue(reader: Reader, attribute: AbbreviationAttribute) {
+    switch (attribute.form) {
+        case AbbreviationAttributeForm.ImplicitConst:
+            return attribute.value!;
+        case AbbreviationAttributeForm.Address:
+            return reader.readUInt32();
+        case AbbreviationAttributeForm.Block1:
+            return reader.readUInt8();
+        case AbbreviationAttributeForm.Block2:
+            return reader.readUInt16();
+        case AbbreviationAttributeForm.Block4:
+            return reader.readUInt32();
+        case AbbreviationAttributeForm.Data1:
+            return reader.readUInt8();
+        case AbbreviationAttributeForm.Data2:
+            return reader.readUInt16();
+        case AbbreviationAttributeForm.Data4:
+            return reader.readUInt32();
+        case AbbreviationAttributeForm.Data8:
+            return reader.readUInt64();
+        case AbbreviationAttributeForm.String:
+            return reader.readString();
+        case AbbreviationAttributeForm.Strp:
+            return reader.readUInt32();
+        case AbbreviationAttributeForm.LineStrp:
+            return reader.readUInt32();
+        case AbbreviationAttributeForm.Flag:
+            return reader.readUInt8();
+        case AbbreviationAttributeForm.SecOffset:
+            return reader.readUInt32();
+        case AbbreviationAttributeForm.ExprLoc:
+            return reader.readUInt32();
+        case AbbreviationAttributeForm.Ref1:
+            return reader.readUInt8();
+        case AbbreviationAttributeForm.Ref2:
+            return reader.readUInt16();
+        case AbbreviationAttributeForm.Ref4:
+            return reader.readUInt32();
+        case AbbreviationAttributeForm.Ref8:
+            return reader.readUInt64();
+        case AbbreviationAttributeForm.RefUData:
+            return reader.readULEB128();
+        case AbbreviationAttributeForm.Indirect:
+            return reader.readULEB128();
+        case AbbreviationAttributeForm.RefAddr:
+            return reader.readUInt32();
+        case AbbreviationAttributeForm.FlagPresent:
+            return 0x01;
+        case AbbreviationAttributeForm.RefSig8:
+            return reader.readUInt64();
+        default:
+            throw new Error(`Unknown attribute form ${AbbreviationAttributeForm[attribute.form]}`);
+    }
 }
 
 export function decodeDwarf(buffer: Buffer, elf: ElfHeader): Dwarf {
@@ -332,6 +413,10 @@ export function decodeDwarf(buffer: Buffer, elf: ElfHeader): Dwarf {
 
     const infoReader = Reader.from(buffer, debugInfoSectionHeader.offset);
 
+    const abbreviations = decodeAbbreviations(buffer, elf);
+
+
+    const infoEntryStack = new InfoEntryStack();
     const compilationUnits: CompilationUnit[] = [];
     while (infoReader.offset < debugInfoSectionHeader.offset + debugInfoSectionHeader.size) {
         const length = infoReader.readUInt32();
@@ -351,39 +436,67 @@ export function decodeDwarf(buffer: Buffer, elf: ElfHeader): Dwarf {
         const headerEnd = infoReader.offset;
         const headerLength = headerEnd - headerStart;
 
-        const header: CompilationUnitHeader = {
-            version,
-            abbrevOffset,
-            addressSize
-        };
+        // const header: CompilationUnitHeader = {
+        //     version,
+        //     abbrevOffset,
+        //     addressSize,
+        //     abbreviation: {} as any,
+        //     attributes: [],
+        //     children: []
+        // };
 
-        debug!(header);
+        if (!infoEntryStack.empty()) {
+            throw new Error("Info entry stack not empty");
+        }
 
-        const abbreviations = decodeAbbreviations(buffer, elf, abbrevOffset);
-
+        let lastEntry: InfoEntry | undefined;
         while (infoReader.offset < headerStart + length) {
             const code = infoReader.readULEB128();
             debug!(code);
-            if (code == 0) continue;
 
-            // const form = infoReader.readULEB128();
+            if (code == 0) {
+                lastEntry = infoEntryStack.pop();
+                continue;
+            }
+
+            const entry: InfoEntry = {
+                abbreviation: {} as any,
+                attributes: [],
+                children: []
+            };
+
             const abbr = abbreviations.find(x => x.code == code);
             if (!abbr) throw new Error("No abbreviation found");
 
-            debug!(abbr);
+            entry.abbreviation = abbr;
 
-            process.exit(0);
+            for (const abbrAttribute of abbr.attributes) {
+                const value = readAttributeValue(infoReader, abbrAttribute);
+                const dbgAbbrev = {
+                    name: AbbreviationAttributeName[abbrAttribute.name],
+                    form: AbbreviationAttributeForm[abbrAttribute.form],
+                };
+
+                debug!(dbgAbbrev, value);
+                entry.attributes.push({ abbreviation: abbrAttribute, value });
+            }
+
+            if (infoEntryStack.current?.abbreviation.hasChildren) {
+                infoEntryStack.current.children.push(entry);
+            }
+
+            if (entry.abbreviation.hasChildren) {
+                infoEntryStack.push(entry);
+            }
 
             // debug!(code);
         }
 
-
-        debug!(header);
-
-        compilationUnits.push({
-            header,
-            abbreviations,
-        });
+        debug!(lastEntry);
+        // compilationUnits.push({
+        //     header,
+        //     abbreviations,
+        // });
     }
 
     return {
