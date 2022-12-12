@@ -36,9 +36,10 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@laurci/injector@link:../meta-utils/injector":
-  version "0.0.0"
-  uid ""
+"@laurci/injector@latest":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@laurci/injector/-/injector-0.0.1.tgz#25418f0d9be1e1a382a2a4d157e754f6ec4c4678"
+  integrity sha512-AS4xWrR0DONBS0UiJ1BNJWB4Q9DHzkNDLKBImdiCC/T9ctLyhC0D+LioeIZRTYIE3KVBvWAJxILY/V8Tgc8bsA==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -1018,9 +1019,9 @@ typescript-formatter@^7.2.2:
     editorconfig "^0.15.0"
 
 "typescript@npm:@laurci/typescript@latest":
-  version "5.0.0-p.10"
-  resolved "https://registry.yarnpkg.com/@laurci/typescript/-/typescript-5.0.0-p.10.tgz#38618440f18a268c7da214d97427b918e3413af7"
-  integrity sha512-7el0LHkINCfcDGp3RxwBDlHH48ydMPTuRRT1QPajB25uImaqHe+I/nW3YRwRPT1xYJz4VqQt1dCSQ8VmKBVxjg==
+  version "5.0.0-p.11"
+  resolved "https://registry.yarnpkg.com/@laurci/typescript/-/typescript-5.0.0-p.11.tgz#50805577fb52723dce9d4560d248c7c910ea1a2e"
+  integrity sha512-s+rELTeAxo5QN+BvDs6wkfrCof0euiFiBK0LdHl4quDdhrFuswl64l9MIaL3GwcNOvGE6pFlnmZIYrXM/xGmvA==
   dependencies:
     pirates "^4.0.5"
 
@@ -1031,9 +1032,10 @@ uri-js@^4.2.2:
   dependencies:
     punycode "^2.1.0"
 
-"utils@link:../meta-utils/utils":
-  version "0.0.0"
-  uid ""
+"utils@npm:@laurci/utils@latest":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@laurci/utils/-/utils-0.0.2.tgz#31d90f9d39dac9c1f48c732de6493443692e93fc"
+  integrity sha512-dmk1aIyV3AH1q5Oc7FNjiIPCp4H4vTBCRE5Mzo5Pz2hAu7PwH2mdSIPAPt+gKVyHLRxHU3fnJj8uGu9h+RBbHQ==
 
 which@^2.0.1:
   version "2.0.2"

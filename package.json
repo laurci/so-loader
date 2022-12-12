@@ -16,7 +16,7 @@
         "ffi-napi": "^4.0.3"
     },
     "devDependencies": {
-        "@laurci/injector": "link:../meta-utils/injector",
+        "@laurci/injector": "latest",
         "@types/ffi-napi": "^4.0.7",
         "@types/node": "^18.11.3",
         "@typescript-eslint/eslint-plugin": "^5.40.0",
@@ -26,7 +26,7 @@
         "rimraf": "^3.0.2",
         "typescript": "npm:@laurci/typescript@latest",
         "typescript-formatter": "^7.2.2",
-        "utils": "link:../meta-utils/utils"
+        "utils": "npm:@laurci/utils@latest"
     },
     "resolutions": {
         "typescript": "npm:@laurci/typescript@latest"
