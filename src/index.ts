@@ -4,7 +4,6 @@ bootstrap({
     all: true
 });
 
-import { debug } from "utils/debug";
 import { bootstrapFfi, ffi } from "./ffi";
 import { so } from "./so";
 
