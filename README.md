@@ -1,8 +1,14 @@
 # so-loader
 
-This project is an auto-loader for FFIs. It only supports the `so` format and the Linux OS.
+This project is an auto-loader for FFIs. It only supports the `.so` format and the Linux OS.
 
-Instead of having to manually write out the functions and types for functions, this library will automatically read the debug symfols from the `so` file and generate the FFI for you.
+Instead of having to manually write out the functions and types for functions, this library will automatically read the debug symfols from the `.so` file and generate the FFI for you.
+
+## Setup
+
+This library only supports the `.so` format and the Linux OS.
+
+You also need to have `dwarfdump` installed. This is used to read the debug symbols from the `.so` file.
 
 ## Building and runnning
 
