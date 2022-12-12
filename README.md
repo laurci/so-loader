@@ -1,5 +1,7 @@
 # so-loader
 
+Disclaimer: This is a work in progress. It's not ready for production use. I don't guarantee that I will finish this project.
+
 This project is an auto-loader for FFIs. It only supports the `.so` format and the Linux OS.
 
 Instead of having to manually write out the functions and types for functions, this library will automatically read the debug symfols from the `.so` file and generate the FFI for you.
