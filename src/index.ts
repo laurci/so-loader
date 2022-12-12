@@ -4,19 +4,23 @@ bootstrap({
     all: true
 });
 
-import * as fs from "fs";
-
 import { debug } from "utils/debug";
+import { bootstrapFfi, ffi } from "./ffi";
+import { so } from "./so";
 
-import { decodeElfHeader } from "./elf";
-import { decodeDwarf } from "./dwarf";
+bootstrapFfi();
 
 async function main() {
-    const buffer = fs.readFileSync("./native/libhello.so");
-    const elfHeader = decodeElfHeader(buffer);
+    const libhello = ffi(so!("../native/libhello.so"));
 
-    const dwarf = decodeDwarf(buffer, elfHeader);
-    debug!(dwarf);
+    const sum = libhello.sum({
+        a: 1,
+        b: 2,
+    });
+
+    libhello.hello({
+        num: sum
+    });
 }
 
 main();

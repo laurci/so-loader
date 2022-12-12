@@ -12,8 +12,12 @@
         "native:build": "gcc -shared -o ./native/libhello.so -g -fPIC ./native/hello.cpp",
         "native:read": "readelf --debug-dump=info ./native/libhello.so"
     },
-    "dependencies": {},
+    "dependencies": {
+        "ffi-napi": "^4.0.3"
+    },
     "devDependencies": {
+        "@laurci/injector": "link:../meta-utils/injector",
+        "@types/ffi-napi": "^4.0.7",
         "@types/node": "^18.11.3",
         "@typescript-eslint/eslint-plugin": "^5.40.0",
         "@typescript-eslint/parser": "^5.40.0",
@@ -22,7 +26,6 @@
         "rimraf": "^3.0.2",
         "typescript": "npm:@laurci/typescript@latest",
         "typescript-formatter": "^7.2.2",
-        "@laurci/injector": "link:../meta-utils/injector",
         "utils": "link:../meta-utils/utils"
     },
     "resolutions": {
