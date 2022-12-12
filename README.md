@@ -1,6 +1,6 @@
 # so-loader
 
-Disclaimer: This is a work in progress. It's not ready for production use. I don't guarantee that I will finish this project.
+**Disclaimer**: This is a work in progress. It's not ready for production use. I don't guarantee that I will finish this project.
 
 This project is an auto-loader for FFIs. It only supports the `.so` format and the Linux OS.
 
