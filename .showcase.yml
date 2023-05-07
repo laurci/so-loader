@@ -1,0 +1,6 @@
+size: small
+description: |
+  This project uses the features of my compiler to expose a better interface to working with FFI in Node. It uses dwarfdump to analyze the .so files and find exposed functions that follow the C-ABI calling conventions (note: your library must include the dwarf debugging information during development, you can ship a stripped binary in production). From the debug information collected, it generates the code needed to dynamically load the library and call the exposed functions, but also the types for these functions.
+tags:
+  - meta-programming
+  - FFI
